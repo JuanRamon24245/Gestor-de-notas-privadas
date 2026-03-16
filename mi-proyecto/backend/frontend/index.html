@@ -582,13 +582,28 @@
 
   // ── Notes API ─────────────────────────────────────────────────────────────
   async function loadNotes() {
-    try {
-      const res = await fetch(`${API}/notes`, { headers: authHeaders() });
-      if (res.status === 401) return handleLogout();
-      notes = await res.json();
-      renderNoteList();
-    } catch { showToast('Error al cargar notas', 'error-toast'); }
+  try {
+    const res = await fetch(`${API}/notes`, {
+      headers: {
+        ...authHeaders(),
+        'Cache-Control': 'no-cache'   // ← añade esto
+      }
+    });
+    if (res.status === 401) return handleLogout();
+    if (!res.ok) {
+      showToast('Error al cargar notas', 'error-toast');
+      return;
+    }
+    // Si es 304, el navegador ya tiene los datos en caché y res.json() funciona
+    // pero por si acaso, comprobamos que haya contenido
+    const text = await res.text();
+    notes = text ? JSON.parse(text) : notes; // mantiene las notas anteriores si no hay body
+    renderNoteList();
+  } catch (err) {
+    console.error('loadNotes error:', err);
+    showToast('Error al cargar notas', 'error-toast');
   }
+}
 
   function renderNoteList() {
     const list = document.getElementById('note-list');
