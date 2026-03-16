@@ -249,8 +249,8 @@ app.delete('/api/notes/:id', authMiddleware, (req, res) => {
 });
 
 // ── Catch-all → SPA ──────────────────────────────────────────────────────────
+app.use(express.static(path.join(__dirname, 'frontend')));
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
+  res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
 });
-
 app.listen(PORT, () => console.log(`Servidor corriendo en http://localhost:${PORT}`));
