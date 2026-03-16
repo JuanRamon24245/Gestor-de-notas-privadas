@@ -14,7 +14,7 @@ const DB_PATH = path.join(__dirname, 'db.json');
 // ── Middlewares ──────────────────────────────────────────────────────────────
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, '../frontend')));
+app.use(express.static(path.join(__dirname, 'frontend')));
 
 // ── DB helpers ───────────────────────────────────────────────────────────────
 function readDB() {
