@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Notas Privadas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0f0f0f;
+      --surface:   #171717;
+      --surface2:  #1e1e1e;
+      --border:    #2a2a2a;
+      --accent:    #c9a96e;
+      --accent2:   #8b6f47;
+      --text:      #e8e0d5;
+      --muted:     #7a7570;
+      --danger:    #c0392b;
+      --radius:    6px;
+      --font-body: 'DM Sans', sans-serif;
+      --font-head: 'Playfair Display', Georgia, serif;
+      --transition: 180ms ease;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    /* ── Auth screens ─────────────────────────────────────────── */
+    #auth-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      background: radial-gradient(ellipse 80% 60% at 50% -10%, #2a1f10 0%, transparent 70%),
+                  var(--bg);
+    }
+
+    .auth-box {
+      width: 100%;
+      max-width: 400px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2.5rem;
+      animation: fadeUp .35s ease both;
+    }
+
+    .auth-logo {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .auth-logo h1 {
+      font-family: var(--font-head);
+      font-size: 2rem;
+      color: var(--accent);
+      letter-spacing: -0.02em;
+    }
+    .auth-logo p {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-top: 0.3rem;
+      font-weight: 300;
+    }
+
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 1.8rem;
+    }
+    .tab-btn {
+      flex: 1;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-family: var(--font-body);
+      font-size: 0.9rem;
+      font-weight: 500;
+      padding: .7rem 0;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: color var(--transition), border-color var(--transition);
+    }
+    .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    label { display: block; font-size: 0.78rem; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: .45rem; }
+
+    input[type=email], input[type=password], input[type=text], textarea {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      padding: .65rem .85rem;
+      border-radius: var(--radius);
+      outline: none;
+      transition: border-color var(--transition);
+    }
+    input:focus, textarea:focus { border-color: var(--accent2); }
+    textarea { resize: vertical; min-height: 140px; }
+
+    .field { margin-bottom: 1.1rem; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: .4rem;
+      font-family: var(--font-body);
+      font-weight: 500;
+      font-size: .9rem;
+      padding: .65rem 1.2rem;
+      border-radius: var(--radius);
+      border: none;
+      cursor: pointer;
+      transition: background var(--transition), opacity var(--transition), transform 80ms;
+    }
+    .btn:active { transform: scale(.97); }
+    .btn-primary { background: var(--accent); color: #1a1000; width: 100%; }
+    .btn-primary:hover { background: #d4b07e; }
+    .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+    .btn-ghost:hover { border-color: var(--muted); color: var(--text); }
+    .btn-danger { background: transparent; border: 1px solid var(--danger); color: var(--danger); }
+    .btn-danger:hover { background: var(--danger); color: #fff; }
+    .btn-sm { padding: .4rem .8rem; font-size: .82rem; }
+
+    .error-msg {
+      background: rgba(192,57,43,.12);
+      border: 1px solid rgba(192,57,43,.3);
+      color: #e74c3c;
+      padding: .6rem .9rem;
+      border-radius: var(--radius);
+      font-size: .85rem;
+      margin-bottom: 1rem;
+      display: none;
+    }
+    .error-msg.show { display: block; animation: fadeIn .2s ease; }
+
+    /* ── App shell ────────────────────────────────────────────── */
+    #app-screen { display: none; min-height: 100vh; }
+
+    .topbar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: .9rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .topbar-brand {
+      font-family: var(--font-head);
+      font-size: 1.3rem;
+      color: var(--accent);
+    }
+    .topbar-right { display: flex; align-items: center; gap: .8rem; }
+    .topbar-email { color: var(--muted); font-size: .82rem; }
+
+    .main-layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      min-height: calc(100vh - 53px);
+    }
+
+    /* ── Sidebar ──────────────────────────────────────────────── */
+    .sidebar {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+    .sidebar-header {
+      padding: 1rem 1rem .6rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .sidebar-header h2 {
+      font-family: var(--font-head);
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: .7rem;
+    }
+    .note-list { flex: 1; overflow-y: auto; }
+    .note-item {
+      padding: .85rem 1rem;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background var(--transition);
+      position: relative;
+    }
+    .note-item:hover { background: var(--surface2); }
+    .note-item.active { background: rgba(201,169,110,.07); border-left: 2px solid var(--accent); }
+    .note-item-title {
+      font-size: .88rem;
+      font-weight: 500;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: .2rem;
+    }
+    .note-item-date { font-size: .74rem; color: var(--muted); }
+    .note-item-preview { font-size: .78rem; color: var(--muted); margin-top: .2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .empty-list {
+      padding: 2rem 1rem;
+      text-align: center;
+      color: var(--muted);
+      font-size: .85rem;
+      line-height: 1.8;
+    }
+
+    /* ── Editor / detail ──────────────────────────────────────── */
+    .content-area {
+      display: flex;
+      flex-direction: column;
+      background: var(--bg);
+      overflow-y: auto;
+    }
+    .content-placeholder {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      gap: .8rem;
+    }
+    .content-placeholder .icon { font-size: 2.5rem; }
+    .content-placeholder p { font-size: .9rem; }
+
+    #note-editor, #note-view { padding: 2rem; max-width: 780px; width: 100%; margin: 0 auto; }
+
+    .editor-actions {
+      display: flex;
+      gap: .6rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    #note-editor input[type=text] {
+      font-family: var(--font-head);
+      font-size: 1.5rem;
+      font-weight: 600;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid var(--border);
+      border-radius: 0;
+      padding: .3rem 0 .6rem;
+      margin-bottom: 1.2rem;
+      color: var(--text);
+    }
+    #note-editor input[type=text]:focus { border-bottom-color: var(--accent); }
+
+    #note-editor textarea {
+      min-height: 320px;
+      background: var(--surface);
+      border-color: var(--border);
+      line-height: 1.8;
+      font-size: .95rem;
+    }
+
+    /* ── View mode ────────────────────────────────────────────── */
+    .note-view-title {
+      font-family: var(--font-head);
+      font-size: 1.7rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: .4rem;
+      line-height: 1.25;
+    }
+    .note-view-meta {
+      font-size: .78rem;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+      padding-bottom: 1.2rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .note-view-body {
+      font-size: .95rem;
+      line-height: 1.85;
+      color: var(--text);
+      white-space: pre-wrap;
+    }
+
+    /* ── Modal ────────────────────────────────────────────────── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      padding: 1rem;
+    }
+    .modal-overlay.show { display: flex; animation: fadeIn .15s ease; }
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 2rem;
+      max-width: 420px;
+      width: 100%;
+      animation: fadeUp .2s ease both;
+    }
+    .modal h3 { font-family: var(--font-head); font-size: 1.1rem; margin-bottom: .7rem; }
+    .modal p { color: var(--muted); font-size: .88rem; margin-bottom: 1.5rem; }
+    .modal-actions { display: flex; gap: .6rem; justify-content: flex-end; }
+
+    /* ── Toast ────────────────────────────────────────────────── */
+    #toast {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: .75rem 1.2rem;
+      border-radius: var(--radius);
+      font-size: .85rem;
+      z-index: 300;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity .25s ease, transform .25s ease;
+      pointer-events: none;
+    }
+    #toast.show { opacity: 1; transform: translateY(0); }
+    #toast.success { border-color: var(--accent2); }
+    #toast.error-toast { border-color: var(--danger); }
+
+    /* ── Animations ───────────────────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    /* ── Responsive ───────────────────────────────────────────── */
+    @media (max-width: 640px) {
+      .main-layout { grid-template-columns: 1fr; }
+      .sidebar { border-right: none; border-bottom: 1px solid var(--border); max-height: 40vh; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── AUTH SCREEN ─────────────────────────────────────────────────────── -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <h1>Notas</h1>
+      <p>Tu espacio privado de escritura</p>
+    </div>
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('login')">Iniciar sesión</button>
+      <button class="tab-btn" onclick="switchTab('register')">Registrarse</button>
+    </div>
+
+    <div id="auth-error" class="error-msg"></div>
+
+    <!-- Login form -->
+    <div id="login-form">
+      <div class="field">
+        <label for="login-email">Email</label>
+        <input type="email" id="login-email" placeholder="tu@email.com" autocomplete="email" />
+      </div>
+      <div class="field">
+        <label for="login-password">Contraseña</label>
+        <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" />
+      </div>
+      <button class="btn btn-primary" onclick="handleLogin()">Entrar</button>
+    </div>
+
+    <!-- Register form -->
+    <div id="register-form" style="display:none">
+      <div class="field">
+        <label for="reg-email">Email</label>
+        <input type="email" id="reg-email" placeholder="tu@email.com" autocomplete="email" />
+      </div>
+      <div class="field">
+        <label for="reg-password">Contraseña</label>
+        <input type="password" id="reg-password" placeholder="Mínimo 6 caracteres" autocomplete="new-password" />
+      </div>
+      <div class="field">
+        <label for="reg-confirm">Confirmar contraseña</label>
+        <input type="password" id="reg-confirm" placeholder="••••••••" autocomplete="new-password" />
+      </div>
+      <button class="btn btn-primary" onclick="handleRegister()">Crear cuenta</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── APP SCREEN ──────────────────────────────────────────────────────── -->
+<div id="app-screen">
+  <header class="topbar">
+    <span class="topbar-brand">Notas</span>
+    <div class="topbar-right">
+      <span class="topbar-email" id="user-email-display"></span>
+      <button class="btn btn-ghost btn-sm" onclick="handleLogout()">Salir</button>
+    </div>
+  </header>
+
+  <div class="main-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2>Mis notas</h2>
+        <button class="btn btn-primary" style="width:100%" onclick="startNewNote()">+ Nueva nota</button>
+      </div>
+      <div class="note-list" id="note-list"></div>
+    </aside>
+
+    <!-- Content area -->
+    <main class="content-area" id="content-area">
+      <div class="content-placeholder" id="placeholder">
+        <div class="icon">✦</div>
+        <p>Selecciona una nota o crea una nueva</p>
+      </div>
+
+      <!-- Editor -->
+      <div id="note-editor" style="display:none">
+        <div class="editor-actions">
+          <button class="btn btn-primary btn-sm" onclick="saveNote()">Guardar</button>
+          <button class="btn btn-ghost btn-sm" onclick="cancelEdit()">Cancelar</button>
+          <button class="btn btn-danger btn-sm" id="delete-btn" onclick="confirmDelete()" style="display:none">Eliminar</button>
+        </div>
+        <input type="text" id="note-title" placeholder="Título de la nota…" maxlength="200" />
+        <textarea id="note-content" placeholder="Escribe aquí tu nota…" maxlength="10000"></textarea>
+        <div id="editor-error" class="error-msg"></div>
+      </div>
+
+      <!-- View -->
+      <div id="note-view" style="display:none">
+        <div class="editor-actions">
+          <button class="btn btn-ghost btn-sm" onclick="editCurrentNote()">Editar</button>
+          <button class="btn btn-danger btn-sm" onclick="confirmDelete()">Eliminar</button>
+        </div>
+        <h2 class="note-view-title" id="view-title"></h2>
+        <div class="note-view-meta" id="view-meta"></div>
+        <div class="note-view-body" id="view-body"></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- ── DELETE CONFIRM MODAL ────────────────────────────────────────────── -->
+<div class="modal-overlay" id="delete-modal">
+  <div class="modal">
+    <h3>¿Eliminar nota?</h3>
+    <p>Esta acción no se puede deshacer. La nota se borrará permanentemente.</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteNote()">Sí, eliminar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── TOAST ───────────────────────────────────────────────────────────── -->
+<div id="toast"></div>
+
+<script>
+  const API = '/api';
+  let token = localStorage.getItem('token') || null;
+  let currentUser = JSON.parse(localStorage.getItem('user') || 'null');
+  let notes = [];
+  let currentNoteId = null;
+  let editingNoteId = null;
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+  function authHeaders() {
+    return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+  }
+
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `show ${type}`;
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => { t.className = ''; }, 2800);
+  }
+
+  function showAuthError(msg) {
+    const el = document.getElementById('auth-error');
+    el.textContent = msg;
+    el.classList.add('show');
+  }
+  function clearAuthError() {
+    const el = document.getElementById('auth-error');
+    el.classList.remove('show');
+  }
+
+  function showEditorError(msg) {
+    const el = document.getElementById('editor-error');
+    el.textContent = msg;
+    el.classList.add('show');
+  }
+  function clearEditorError() {
+    const el = document.getElementById('editor-error');
+    el.classList.remove('show');
+  }
+
+  function formatDate(iso) {
+    return new Date(iso).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }
+
+  // ── Auth ──────────────────────────────────────────────────────────────────
+  function switchTab(tab) {
+    clearAuthError();
+    document.getElementById('login-form').style.display = tab === 'login' ? '' : 'none';
+    document.getElementById('register-form').style.display = tab === 'register' ? '' : 'none';
+    document.querySelectorAll('.tab-btn').forEach((b, i) => {
+      b.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'register'));
+    });
+  }
+
+  async function handleLogin() {
+    clearAuthError();
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    if (!email || !password) return showAuthError('Completa todos los campos');
+
+    try {
+      const res = await fetch(`${API}/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
+      const data = await res.json();
+      if (!res.ok) return showAuthError(data.error);
+      saveSession(data);
+    } catch { showAuthError('Error de conexión. Inténtalo de nuevo.'); }
+  }
+
+  async function handleRegister() {
+    clearAuthError();
+    const email = document.getElementById('reg-email').value.trim();
+    const password = document.getElementById('reg-password').value;
+    const confirmPassword = document.getElementById('reg-confirm').value;
+    if (!email || !password || !confirmPassword) return showAuthError('Completa todos los campos');
+
+    try {
+      const res = await fetch(`${API}/register`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password, confirmPassword }) });
+      const data = await res.json();
+      if (!res.ok) return showAuthError(data.error);
+      saveSession(data);
+    } catch { showAuthError('Error de conexión. Inténtalo de nuevo.'); }
+  }
+
+  function saveSession({ token: t, user }) {
+    token = t;
+    currentUser = user;
+    localStorage.setItem('token', t);
+    localStorage.setItem('user', JSON.stringify(user));
+    enterApp();
+  }
+
+  function handleLogout() {
+    token = null; currentUser = null; notes = []; currentNoteId = null; editingNoteId = null;
+    localStorage.removeItem('token'); localStorage.removeItem('user');
+    document.getElementById('app-screen').style.display = 'none';
+    document.getElementById('auth-screen').style.display = 'flex';
+  }
+
+  // ── App entry ─────────────────────────────────────────────────────────────
+  function enterApp() {
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('app-screen').style.display = 'block';
+    document.getElementById('user-email-display').textContent = currentUser?.email || '';
+    loadNotes();
+  }
+
+  // ── Notes API ─────────────────────────────────────────────────────────────
+  async function loadNotes() {
+    try {
+      const res = await fetch(`${API}/notes`, { headers: authHeaders() });
+      if (res.status === 401) return handleLogout();
+      notes = await res.json();
+      renderNoteList();
+    } catch { showToast('Error al cargar notas', 'error-toast'); }
+  }
+
+  function renderNoteList() {
+    const list = document.getElementById('note-list');
+    if (!notes.length) {
+      list.innerHTML = `<div class="empty-list">Aún no tienes notas.<br>¡Crea la primera!</div>`;
+      return;
+    }
+    list.innerHTML = notes.map(n => `
+      <div class="note-item ${n.id === currentNoteId ? 'active' : ''}" onclick="openNote('${n.id}')">
+        <div class="note-item-title">${escHtml(n.titulo)}</div>
+        <div class="note-item-date">${formatDate(n.created_at)}</div>
+        <div class="note-item-preview">${escHtml(n.contenido.slice(0, 80))}</div>
+      </div>
+    `).join('');
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function openNote(id) {
+    currentNoteId = id;
+    editingNoteId = null;
+    const note = notes.find(n => n.id === id);
+    if (!note) return;
+    showView(note);
+    renderNoteList();
+  }
+
+  function showView(note) {
+    document.getElementById('placeholder').style.display = 'none';
+    document.getElementById('note-editor').style.display = 'none';
+    document.getElementById('note-view').style.display = 'block';
+    document.getElementById('view-title').textContent = note.titulo;
+    document.getElementById('view-meta').textContent = `Creada ${formatDate(note.created_at)}${note.updated_at !== note.created_at ? ' · Editada ' + formatDate(note.updated_at) : ''}`;
+    document.getElementById('view-body').textContent = note.contenido;
+  }
+
+  function startNewNote() {
+    currentNoteId = null;
+    editingNoteId = null;
+    renderNoteList();
+    document.getElementById('placeholder').style.display = 'none';
+    document.getElementById('note-view').style.display = 'none';
+    document.getElementById('note-editor').style.display = 'block';
+    document.getElementById('note-title').value = '';
+    document.getElementById('note-content').value = '';
+    document.getElementById('delete-btn').style.display = 'none';
+    clearEditorError();
+    document.getElementById('note-title').focus();
+  }
+
+  function editCurrentNote() {
+    const note = notes.find(n => n.id === currentNoteId);
+    if (!note) return;
+    editingNoteId = note.id;
+    document.getElementById('note-view').style.display = 'none';
+    document.getElementById('note-editor').style.display = 'block';
+    document.getElementById('note-title').value = note.titulo;
+    document.getElementById('note-content').value = note.contenido;
+    document.getElementById('delete-btn').style.display = 'inline-flex';
+    clearEditorError();
+    document.getElementById('note-title').focus();
+  }
+
+  async function saveNote() {
+    clearEditorError();
+    const titulo = document.getElementById('note-title').value.trim();
+    const contenido = document.getElementById('note-content').value.trim();
+    if (!titulo) return showEditorError('El título no puede estar vacío');
+    if (!contenido) return showEditorError('El contenido no puede estar vacío');
+
+    try {
+      const isEdit = !!editingNoteId;
+      const url = isEdit ? `${API}/notes/${editingNoteId}` : `${API}/notes`;
+      const method = isEdit ? 'PUT' : 'POST';
+      const res = await fetch(url, { method, headers: authHeaders(), body: JSON.stringify({ titulo, contenido }) });
+      const data = await res.json();
+      if (!res.ok) return showEditorError(data.error);
+
+      await loadNotes();
+      currentNoteId = data.id;
+      editingNoteId = null;
+      const updated = notes.find(n => n.id === data.id);
+      if (updated) showView(updated);
+      renderNoteList();
+      showToast(isEdit ? 'Nota actualizada' : 'Nota creada');
+    } catch { showEditorError('Error al guardar. Inténtalo de nuevo.'); }
+  }
+
+  function cancelEdit() {
+    clearEditorError();
+    if (editingNoteId) {
+      const note = notes.find(n => n.id === editingNoteId);
+      if (note) { editingNoteId = null; showView(note); return; }
+    }
+    document.getElementById('note-editor').style.display = 'none';
+    document.getElementById('placeholder').style.display = 'flex';
+    currentNoteId = null;
+    renderNoteList();
+  }
+
+  function confirmDelete() {
+    document.getElementById('delete-modal').classList.add('show');
+  }
+  function closeModal() {
+    document.getElementById('delete-modal').classList.remove('show');
+  }
+
+  async function deleteNote() {
+    closeModal();
+    const id = editingNoteId || currentNoteId;
+    if (!id) return;
+    try {
+      const res = await fetch(`${API}/notes/${id}`, { method: 'DELETE', headers: authHeaders() });
+      if (!res.ok) { const d = await res.json(); return showToast(d.error, 'error-toast'); }
+      currentNoteId = null; editingNoteId = null;
+      document.getElementById('note-editor').style.display = 'none';
+      document.getElementById('note-view').style.display = 'none';
+      document.getElementById('placeholder').style.display = 'flex';
+      await loadNotes();
+      showToast('Nota eliminada');
+    } catch { showToast('Error al eliminar', 'error-toast'); }
+  }
+
+  // ── Keyboard shortcuts ────────────────────────────────────────────────────
+  document.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+      e.preventDefault();
+      if (document.getElementById('note-editor').style.display !== 'none') saveNote();
+    }
+    if (e.key === 'Escape') {
+      if (document.getElementById('delete-modal').classList.contains('show')) closeModal();
+    }
+  });
+
+  // Enter key on auth forms
+  document.getElementById('login-password').addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
+  document.getElementById('reg-confirm').addEventListener('keydown', e => { if (e.key === 'Enter') handleRegister(); });
+
+  // ── Init ──────────────────────────────────────────────────────────────────
+  if (token && currentUser) {
+    enterApp();
+  }
+</script>
+</body>
+</html>
