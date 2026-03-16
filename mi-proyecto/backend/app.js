@@ -20,10 +20,22 @@ app.get('*', (req, res) => {
 
 // ── DB helpers ───────────────────────────────────────────────────────────────
 function readDB() {
-  if (!fs.existsSync(DB_PATH)) {
+  try {
+    if (!fs.existsSync(DB_PATH)) {
+      const initial = JSON.stringify({ users: [], notes: [] });
+      fs.writeFileSync(DB_PATH, initial);
+      return { users: [], notes: [] };
+    }
+    const content = fs.readFileSync(DB_PATH, 'utf-8');
+    if (!content || content.trim() === '') {
+      return { users: [], notes: [] };
+    }
+    return JSON.parse(content);
+  } catch (err) {
+    console.error('Error leyendo DB, reiniciando:', err);
     fs.writeFileSync(DB_PATH, JSON.stringify({ users: [], notes: [] }));
+    return { users: [], notes: [] };
   }
-  return JSON.parse(fs.readFileSync(DB_PATH, 'utf-8'));
 }
 
 function writeDB(data) {
