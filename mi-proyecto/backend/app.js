@@ -9,7 +9,7 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecreto_cambiar_en_produccion';
-const DB_PATH = path.join(__dirname, 'db.json');
+const DB_PATH = '/tmp/db.json';
 
 // ── Middlewares ──────────────────────────────────────────────────────────────
 app.use(cors());
