@@ -14,9 +14,6 @@ const DB_PATH = '/tmp/db.json';
 // ── Middlewares ──────────────────────────────────────────────────────────────
 app.use(cors());
 app.use(express.json());
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
-});
 
 // ── DB helpers ───────────────────────────────────────────────────────────────
 function readDB() {
